@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-14  # M1 runner (arm64)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build release binary
+        run: swift build -c release --product muter --disable-sandbox
+
+      - name: Create tarball
+        run: |
+          cd .build/release
+          tar -czvf muter-darwin-arm64.tar.gz muter
+          shasum -a 256 muter-darwin-arm64.tar.gz > muter-darwin-arm64.tar.gz.sha256
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            .build/release/muter-darwin-arm64.tar.gz
+            .build/release/muter-darwin-arm64.tar.gz.sha256
+          generate_release_notes: true
